@@ -85,6 +85,7 @@ import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -346,14 +347,14 @@ class DependencyManagementBuildScopeServices {
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    VcsDependencyResolver createVcsDependencyResolver(ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, CompositeContextBuilder compositeContextBuilder, IncludedBuildRegistry includedBuildRegistry, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         // TODO: Share working directories across included builds
         ProjectInternal rootProject = projectRegistry.getRootProject();
         File baseWorkingDir = null;
         if (rootProject!=null) {
             baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
         }
-        return new VcsDependencyResolver(includedBuildRegistry, baseWorkingDir, projectDependencyResolver, nestedBuildFactory, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+        return new VcsDependencyResolver(compositeContextBuilder, includedBuildRegistry, baseWorkingDir, projectDependencyResolver, nestedBuildFactory, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {

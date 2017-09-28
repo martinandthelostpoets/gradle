@@ -22,30 +22,25 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.logging.Logging;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
-    private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final IncludedBuildRegistry includedBuildRegistry;
     private final DefaultProjectPathRegistry projectRegistry;
-    private final CompositeBuildContext context;
+    private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
 
-    public DefaultCompositeContextBuilder(IncludedBuildRegistry includedBuildRegistry, DefaultProjectPathRegistry projectRegistry, CompositeBuildContext context) {
+    public DefaultCompositeContextBuilder(IncludedBuildRegistry includedBuildRegistry, DefaultProjectPathRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder) {
         this.includedBuildRegistry = includedBuildRegistry;
         this.projectRegistry = projectRegistry;
-        this.context = context;
+        this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
     }
 
     @Override
@@ -57,14 +52,14 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     @Override
-    public void addIncludedBuilds(Iterable<File> includedBuilds, NestedBuildFactory nestedBuildFactory) {
+    public void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds, NestedBuildFactory nestedBuildFactory) {
         registerSubstitutions(registerProjects(includedBuilds, nestedBuildFactory));
     }
 
-    private List<IncludedBuild> registerProjects(Iterable<File> includedBuilds, NestedBuildFactory nestedBuildFactory) {
+    private List<IncludedBuild> registerProjects(Iterable<IncludedBuild> includedBuilds, NestedBuildFactory nestedBuildFactory) {
         List<IncludedBuild> registeredBuilds = Lists.newArrayList();
-        for (File includedBuildPath : includedBuilds) {
-            IncludedBuild includedBuild = includedBuildRegistry.registerBuild(includedBuildPath, nestedBuildFactory);
+        for (IncludedBuild includedBuild : includedBuilds) {
+            includedBuildRegistry.registerBuild(includedBuild.getProjectDir(), nestedBuildFactory);
             registeredBuilds.add(includedBuild);
             Path rootProjectPath = Path.ROOT.child(includedBuild.getName());
             BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(includedBuild.getName());
@@ -83,21 +78,9 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     private void registerSubstitutions(Iterable<IncludedBuild> includedBuilds) {
-        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
         for (IncludedBuild includedBuild : includedBuilds) {
-            doAddToCompositeContext((IncludedBuildInternal) includedBuild, contextBuilder);
+            dependencySubstitutionsBuilder.build((IncludedBuildInternal)includedBuild);
         }
     }
 
-    private void doAddToCompositeContext(IncludedBuildInternal build, IncludedBuildDependencySubstitutionsBuilder contextBuilder) {
-        DependencySubstitutionsInternal substitutions = build.resolveDependencySubstitutions();
-        if (!substitutions.hasRules()) {
-            // Configure the included build to discover substitutions
-            LOGGER.info("[composite-build] Configuring build: " + build.getProjectDir());
-            contextBuilder.build(build);
-        } else {
-            // Register the defined substitutions for included build
-            context.registerSubstitution(substitutions.getRuleAction());
-        }
-    }
 }

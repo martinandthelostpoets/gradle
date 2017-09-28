@@ -16,10 +16,9 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.NestedBuildFactory;
-
-import java.io.File;
 
 public interface CompositeContextBuilder {
     /**
@@ -30,5 +29,5 @@ public interface CompositeContextBuilder {
     /**
      * Add the participants to the composite context, using the currently executing build context.
      */
-    void addIncludedBuilds(Iterable<File> includedBuilds, NestedBuildFactory nestedBuildFactory);
+    void addIncludedBuilds(Iterable<IncludedBuild> includedBuilds, NestedBuildFactory nestedBuildFactory);
 }

@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.NestedBuildFactory;
@@ -30,7 +29,7 @@ import java.util.Map;
 public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry {
     private final IncludedBuildFactory includedBuildFactory;
     // TODO: Locking around this
-    private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
+    private final Map<File, IncludedBuildInternal> includedBuilds = Maps.newLinkedHashMap();
 
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory) {
@@ -48,9 +47,9 @@ public class DefaultIncludedBuildRegistry implements IncludedBuildRegistry {
     }
 
     @Override
-    public ConfigurableIncludedBuild registerBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildInternal registerBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
-        ConfigurableIncludedBuild includedBuild = includedBuilds.get(buildDirectory);
+        IncludedBuildInternal includedBuild = includedBuilds.get(buildDirectory);
         if (includedBuild == null) {
             includedBuild = includedBuildFactory.createBuild(buildDirectory, nestedBuildFactory);
             includedBuilds.put(buildDirectory, includedBuild);

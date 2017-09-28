@@ -19,11 +19,10 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
@@ -65,7 +64,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     }
 
     @Override
-    public ConfigurableIncludedBuild createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
         DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory, workerLeaseService.getCurrentWorkerLease());
