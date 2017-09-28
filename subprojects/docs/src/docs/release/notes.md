@@ -6,7 +6,6 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<<<<<<< HEAD
 ### Timeouts for HTTP/HTTPS requests
 
 Previous versions of Gradle did not define a timeout for any HTTP/HTTPS requests. Under certain conditions e.g. network problems, unresponsive or overloaded servers this behavior could lead to hanging connections.
