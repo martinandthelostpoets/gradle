@@ -53,7 +53,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         Map<File, IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
             gradle.setIncludedBuilds(includedBuilds.values());
-            compositeContextBuilder.addIncludedBuilds(includedBuilds.keySet(), nestedBuildFactory);
+            compositeContextBuilder.addIncludedBuilds(includedBuilds.values(), nestedBuildFactory);
         }
 
         return settings;

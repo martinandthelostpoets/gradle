@@ -17,11 +17,9 @@
 package org.gradle.vcs.git;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * A specification of a Git repository.

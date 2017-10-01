@@ -103,7 +103,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private File populateWorkingDirectory(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
         // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
         // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
-        File dependencyWorkingDir = new File(baseWorkingDir, spec.getRepositoryId() + "/" + selectedVersion.getCanonicalId() + "/" + spec.getRepoName());
+        File dependencyWorkingDir = new File(baseWorkingDir, spec.getUniqueId() + "/" + selectedVersion.getCanonicalId() + "/" + spec.getRepoName());
         versionControlSystem.populate(dependencyWorkingDir, selectedVersion, spec);
         return dependencyWorkingDir;
     }

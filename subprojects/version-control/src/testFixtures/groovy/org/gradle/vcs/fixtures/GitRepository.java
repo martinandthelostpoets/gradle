@@ -86,10 +86,6 @@ public class GitRepository extends ExternalResource {
         return git.getRepository().findRef("HEAD");
     }
 
-    public void commit(String message, File... files) throws GitAPIException {
-        commit(message, Arrays.asList(files));
-    }
-
     public TestFile getWorkTree() {
         return new TestFile(git.getRepository().getWorkTree());
     }

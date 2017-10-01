@@ -144,10 +144,4 @@ public class GitVersionControlSystem implements VersionControlSystem {
     private static GradleException wrapGitCommandException(String commandName, URI repoUrl, File workingDir, Exception e) {
         return new GradleException(String.format("Could not %s: %s from %s", commandName, repoUrl, workingDir), e);
     }
-
-    @Override
-    public Set<VersionRef> getAvailableVersions(VersionControlSpec spec) {
-        return Sets.<VersionRef>newHashSet(new DefaultVersionRef());
-    }
-
 }
