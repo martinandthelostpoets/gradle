@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal;
 
+import org.gradle.internal.hash.Hashing;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.io.File;
@@ -38,8 +39,8 @@ public class DirectoryRepository implements VersionControlSpec {
     }
 
     @Override
-    public String getRepositoryId() {
-        return sourceDir.getAbsolutePath();
+    public String getUniqueId() {
+        return Hashing.md5().hashString("dirVcs: " + sourceDir.getAbsolutePath()).toString();
     }
 
     @Override

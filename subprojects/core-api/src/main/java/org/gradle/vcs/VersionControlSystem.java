@@ -32,6 +32,13 @@ public interface VersionControlSystem {
     Set<VersionRef> getAvailableVersions(VersionControlSpec spec);
 
     /**
+     * Returns a {@link Set} of {@link VersionRef}s representing
+     * versions of a software package as they are known to the version
+     * control system.
+     */
+    Set<VersionRef> getAvailableVersions(VersionControlSpec spec);
+
+    /**
      * Populates the {@code workingDir} with the latest state of the
      * version control repostory from the {@code spec}.
      */
