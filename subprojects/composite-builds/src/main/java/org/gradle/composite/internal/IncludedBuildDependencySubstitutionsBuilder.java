@@ -58,7 +58,6 @@ public class IncludedBuildDependencySubstitutionsBuilder {
             // Register the defined substitutions for included build
             context.registerSubstitution(substitutions.getRuleAction());
         }
-
     }
 
     private void registerProject(IncludedBuild build, ProjectInternal project) {

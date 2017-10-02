@@ -18,6 +18,7 @@ package org.gradle.vcs.internal
 
 import org.gradle.util.GFileUtils
 import org.gradle.vcs.fixtures.GitRepository
+import org.gradle.vcs.git.internal.GitVersionControlSystem
 import org.junit.Rule
 
 class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
@@ -25,7 +26,7 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
     GitRepository repo = new GitRepository("dep", temporaryFolder)
 
     def "can define and use source repositories"() {
-        repo.commit("initial commit", GFileUtils.listFiles(file("dep"), null, true))
+        def commit = repo.commit("initial commit", GFileUtils.listFiles(file("dep"), null, true))
 
         settingsFile << """
             sourceControl {
@@ -41,7 +42,8 @@ class GitVcsIntegrationTest extends AbstractVcsIntegrationTest {
         expect:
         succeeds("assemble")
         // Git repo is cloned
-        file("build/vcsWorkingDirs/local/${repo.url.path}/abcdef/dep/.git").assertExists()
+        def gitCheckout = checkoutDir(GitVersionControlSystem, "dep", commit.getId().getName(), repo.url.toASCIIString())
+        gitCheckout.file(".git").assertExists()
     }
 
     // TODO: Use HTTP hosting for git repo

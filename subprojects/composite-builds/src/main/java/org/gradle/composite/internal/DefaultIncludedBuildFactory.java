@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Factory;
@@ -38,13 +37,11 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final Set<GradleLauncher> launchers = Sets.newHashSet();
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final WorkerLeaseService workerLeaseService;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, WorkerLeaseService workerLeaseService) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, WorkerLeaseService workerLeaseService) {
         this.instantiator = instantiator;
         this.startParameter = startParameter;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.workerLeaseService = workerLeaseService;
     }
 
@@ -67,7 +64,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     public IncludedBuildInternal createBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDirectory);
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, nestedBuildFactory, startParameter);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, moduleIdentifierFactory, workerLeaseService.getCurrentWorkerLease());
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, workerLeaseService.getCurrentWorkerLease());
 
         SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);

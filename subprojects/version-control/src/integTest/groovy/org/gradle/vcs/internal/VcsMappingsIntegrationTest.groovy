@@ -19,7 +19,7 @@ package org.gradle.vcs.internal
 class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     def setup() {
         settingsFile << """
-            import ${DirectoryRepository.canonicalName}
+            import ${DirectoryRepositorySpec.canonicalName}
         """
     }
 
@@ -28,7 +28,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepository) {
+                        from vcs(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -45,7 +45,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepository) {
+                        from vcs(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -64,7 +64,7 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
                 vcsMappings {
                     addRule("rule") { details ->
                         if (details.requested.group == "org.test") {
-                            from vcs(DirectoryRepository) {
+                            from vcs(DirectoryRepositorySpec) {
                                 sourceDir = file("dep")
                             }
                         }
@@ -85,13 +85,13 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("unused:dep") {
-                        from vcs(DirectoryRepository) {
+                        from vcs(DirectoryRepositorySpec) {
                             sourceDir = file("does-not-exist")
                         }
                     }
                     addRule("rule") { details ->
-                        if (details.requested.group == "unused") {
-                            from vcs(DirectoryRepository) {
+                        if (details instanceof ModuleVersionSelector && details.requested.group == "unused") {
+                            from vcs(DirectoryRepositorySpec) {
                                 sourceDir = file("does-not-exist")
                             }
                         }
@@ -110,12 +110,12 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
             sourceControl {
                 vcsMappings {
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepository) {
+                        from vcs(DirectoryRepositorySpec) {
                             sourceDir = file("does-not-exist")
                         }
                     }
                     withModule("org.test:dep") {
-                        from vcs(DirectoryRepository) {
+                        from vcs(DirectoryRepositorySpec) {
                             sourceDir = file("dep")
                         }
                     }
@@ -129,10 +129,12 @@ class VcsMappingsIntegrationTest extends AbstractVcsIntegrationTest {
     }
 
     void assertRepoCheckedOut(String repoName="dep") {
-        file("build/vcsWorkingDirs/${file(repoName)}/abcdef/$repoName/checkedout").assertIsFile()
+        def checkout = checkoutDir(SimpleVersionControlSystem, repoName, "fixed", file(repoName).absolutePath)
+        checkout.file("checkedout").assertIsFile()
     }
 
     void assertRepoNotCheckedOut(String repoName="dep") {
-        file("build/vcsWorkingDirs/${file(repoName)}/abcdef/$repoName/checkedout").assertDoesNotExist()
+        def checkout = checkoutDir(SimpleVersionControlSystem, repoName, "fixed", file(repoName).absolutePath)
+        checkout.file("checkedout").assertDoesNotExist()
     }
 }

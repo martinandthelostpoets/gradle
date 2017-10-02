@@ -270,7 +270,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
         if (gradle.getParent() == null) {
             File projectDir = getFileResolver().resolve(rootProject);
-            ConfigurableIncludedBuild includedBuild = getIncludedBuildRegistry().registerBuild(projectDir, getNestedBuildFactory());
+            ConfigurableIncludedBuild includedBuild = getIncludedBuildRegistry().addExplicitBuild(projectDir, getNestedBuildFactory());
             configuration.execute(includedBuild);
         } else {
             throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", getRootProject().getName()));

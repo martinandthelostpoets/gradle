@@ -26,7 +26,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -42,7 +42,6 @@ import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
@@ -54,9 +53,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VersionControlSystemFactory versionControlSystemFactory;
     private final File baseWorkingDir;
     private final IncludedBuildRegistry includedBuildRegistry;
-    private final CompositeContextBuilder compositeContextBuilder;
 
-    public VcsDependencyResolver(CompositeContextBuilder compositeContextBuilder, IncludedBuildRegistry includedBuildRegistry, File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    public VcsDependencyResolver(IncludedBuildRegistry includedBuildRegistry, File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         this.includedBuildRegistry = includedBuildRegistry;
         this.projectDependencyResolver = projectDependencyResolver;
         this.nestedBuildFactory = nestedBuildFactory;
@@ -65,7 +63,6 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.vcsMappingFactory = vcsMappingFactory;
         this.versionControlSystemFactory = versionControlSystemFactory;
         this.baseWorkingDir = baseWorkingDir;
-        this.compositeContextBuilder = compositeContextBuilder;
     }
 
     @Override
@@ -81,29 +78,26 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem);
                 File dependencyWorkingDir = populateWorkingDirectory(spec, versionControlSystem, selectedVersion);
 
-                IncludedBuild includedBuild = includedBuildRegistry.registerBuild(dependencyWorkingDir, nestedBuildFactory);
-                compositeContextBuilder.addIncludedBuilds(Collections.singletonList(includedBuild), nestedBuildFactory);
+                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, nestedBuildFactory);
 
-                // TODO: Populate component registry and implicitly include builds
                 String projectPath = ":"; // TODO: This needs to be extracted by configuring the build. Assume it's from the root for now
                 LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(DefaultProjectComponentIdentifier.newProjectId(includedBuild, projectPath));
 
                 if (componentMetaData == null) {
-                    // TODO: Error
-                    result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, projectPath), vcsMappingInternal + " not supported yet."));
+                    result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild, projectPath), vcsMappingInternal + " could not be resolved into a usable project."));
                 } else {
                     result.resolved(componentMetaData);
                 }
+                return;
             }
-        } else {
-            projectDependencyResolver.resolve(dependency, result);
         }
+
+        projectDependencyResolver.resolve(dependency, result);
     }
 
     private File populateWorkingDirectory(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
-        // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
-        // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
-        File dependencyWorkingDir = new File(baseWorkingDir, spec.getUniqueId() + "/" + selectedVersion.getCanonicalId() + "/" + spec.getRepoName());
+        String repositoryId = HashUtil.createCompactMD5(versionControlSystem.getClass().getCanonicalName() + spec.getUniqueId());
+        File dependencyWorkingDir = new File(baseWorkingDir, repositoryId + "/" + selectedVersion.getCanonicalId() + "/" + spec.getRepoName());
         versionControlSystem.populate(dependencyWorkingDir, selectedVersion, spec);
         return dependencyWorkingDir;
     }

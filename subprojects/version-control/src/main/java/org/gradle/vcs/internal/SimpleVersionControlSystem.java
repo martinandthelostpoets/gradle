@@ -22,7 +22,6 @@ import org.gradle.util.GFileUtils;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
-import org.gradle.vcs.git.internal.DefaultVersionRef;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +35,7 @@ public class SimpleVersionControlSystem implements VersionControlSystem {
 
     @Override
     public void populate(File workingDir, VersionRef ref, VersionControlSpec spec) {
-        File sourceDir = ((DirectoryRepository)spec).getSourceDir();
+        File sourceDir = ((DirectoryRepositorySpec)spec).getSourceDir();
         try {
             GFileUtils.copyDirectory(sourceDir, workingDir);
             new File(workingDir, "checkedout").createNewFile();

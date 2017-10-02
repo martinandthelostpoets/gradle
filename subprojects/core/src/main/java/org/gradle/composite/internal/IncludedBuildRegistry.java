@@ -16,8 +16,10 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.NestedBuildFactory;
 
 import java.io.File;
@@ -26,7 +28,10 @@ import java.util.Map;
 public interface IncludedBuildRegistry {
     boolean hasIncludedBuilds();
     Map<File, IncludedBuild> getIncludedBuilds();
-    ConfigurableIncludedBuild registerBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
+    IncludedBuild getBuild(BuildIdentifier name);
 
-    IncludedBuild getBuild(String name);
+    void validateExplicitIncludedBuilds(SettingsInternal settings);
+
+    ConfigurableIncludedBuild addExplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
+    ConfigurableIncludedBuild addImplicitBuild(File buildDirectory, NestedBuildFactory nestedBuildFactory);
 }

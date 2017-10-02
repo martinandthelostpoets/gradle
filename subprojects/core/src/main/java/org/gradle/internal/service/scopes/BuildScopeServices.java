@@ -129,7 +129,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.FileHasher;
@@ -310,7 +309,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator,
-                                                                CompositeContextBuilder compositeContextBuilder,
                                                                 IncludedBuildRegistry includedBuildRegistry) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
@@ -326,7 +324,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                         BuildSrcProjectConfigurationAction.class,
                         cachingServiceLocator))),
             nestedBuildFactory,
-            compositeContextBuilder,
             includedBuildRegistry);
     }
 

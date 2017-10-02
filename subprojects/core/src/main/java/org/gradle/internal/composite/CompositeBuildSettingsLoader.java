@@ -16,11 +16,6 @@
 
 package org.gradle.internal.composite;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildRegistry;
@@ -28,65 +23,30 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
     private final NestedBuildFactory nestedBuildFactory;
-    private final CompositeContextBuilder compositeContextBuilder;
     private final IncludedBuildRegistry includedBuildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, CompositeContextBuilder compositeContextBuilder, IncludedBuildRegistry includedBuildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
         this.delegate = delegate;
         this.nestedBuildFactory = nestedBuildFactory;
-        this.compositeContextBuilder = compositeContextBuilder;
         this.includedBuildRegistry = includedBuildRegistry;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         SettingsInternal settings = delegate.findAndLoadSettings(gradle);
-        compositeContextBuilder.setRootBuild(settings);
 
-        Map<File, IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
-        if (!includedBuilds.isEmpty()) {
-            gradle.setIncludedBuilds(includedBuilds.values());
-            compositeContextBuilder.addIncludedBuilds(includedBuilds.values(), nestedBuildFactory);
+        // Add all included builds from the command-line
+        for (File file : gradle.getStartParameter().getIncludedBuilds()) {
+            includedBuildRegistry.addExplicitBuild(file, nestedBuildFactory);
         }
+
+        // Lock-in explicitly included builds
+        includedBuildRegistry.validateExplicitIncludedBuilds(settings);
 
         return settings;
     }
-
-    private Map<File, IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
-        Map<File, IncludedBuild> includedBuilds = Maps.newLinkedHashMap();
-        includedBuilds.putAll(includedBuildRegistry.getIncludedBuilds());
-
-        for (File file : startParameter.getIncludedBuilds()) {
-            IncludedBuild includedBuild = includedBuildRegistry.registerBuild(file, nestedBuildFactory);
-            includedBuilds.put(file, includedBuild);
-        }
-
-        validateBuildNames(includedBuilds.values(), settings);
-
-        return includedBuilds;
-    }
-
-    private void validateBuildNames(Collection<IncludedBuild> builds, SettingsInternal settings) {
-        Set<String> names = Sets.newHashSet();
-        for (IncludedBuild build : builds) {
-            String buildName = build.getName();
-            if (!names.add(buildName)) {
-                throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
-            }
-            if (settings.getRootProject().getName().equals(buildName)) {
-                throw new GradleException("Included build '" + buildName + "' collides with root project name.");
-            }
-            if (settings.findProject(":" + buildName) != null) {
-                throw new GradleException("Included build '" + buildName + "' collides with subproject of the same name.");
-            }
-        }
-    }
-
 }

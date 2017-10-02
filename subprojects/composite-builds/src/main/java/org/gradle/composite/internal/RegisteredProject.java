@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.vcs.git.internal;
+package org.gradle.composite.internal;
 
-import org.gradle.vcs.VersionRef;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
-public class DefaultVersionRef implements VersionRef {
-    @Override
-    public String getVersion() {
-        return "master";
-    }
+import java.util.Collection;
 
-    @Override
-    public String getCanonicalId() {
-        return "abcdef";
+public class RegisteredProject {
+    public final LocalComponentMetadata metaData;
+    public final Collection<LocalComponentArtifactMetadata> artifacts;
+
+    public RegisteredProject(LocalComponentMetadata metaData, Collection<LocalComponentArtifactMetadata> artifacts) {
+        this.metaData = metaData;
+        this.artifacts = artifacts;
     }
 }
