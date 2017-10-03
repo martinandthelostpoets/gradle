@@ -101,10 +101,12 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
             // This is to prevent a recursive loop through this when we're configuring the build
             configuredBuilds.add(buildIdentifier);
             IncludedBuildInternal includedBuild = (IncludedBuildInternal) includedBuildRegistry.getBuild(buildIdentifier);
-            projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
-            registeredProject = projectMetadata.get(project);
-            if (registeredProject == null) {
-                throw new IllegalStateException(project + " was not found.");
+            if (includedBuild != null) {
+                projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
+                registeredProject = projectMetadata.get(project);
+                if (registeredProject == null) {
+                    throw new IllegalStateException(project + " was not found.");
+                }
             }
         }
         return registeredProject;
