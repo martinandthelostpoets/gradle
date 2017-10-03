@@ -80,7 +80,6 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -348,7 +347,7 @@ class DependencyManagementBuildScopeServices {
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, IncludedBuildRegistry includedBuildRegistry, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
         // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
         ProjectInternal rootProject = projectRegistry.getRootProject();
@@ -356,7 +355,7 @@ class DependencyManagementBuildScopeServices {
         if (rootProject!=null) {
             baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
         }
-        return new VcsDependencyResolver(includedBuildRegistry, baseWorkingDir, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+        return new VcsDependencyResolver(baseWorkingDir, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {

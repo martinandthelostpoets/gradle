@@ -53,10 +53,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
     private final File baseWorkingDir;
-    private final IncludedBuildRegistry includedBuildRegistry;
 
-    public VcsDependencyResolver(IncludedBuildRegistry includedBuildRegistry, File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
-        this.includedBuildRegistry = includedBuildRegistry;
+    public VcsDependencyResolver(File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
@@ -80,7 +78,9 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 File dependencyWorkingDir = populateWorkingDirectory(spec, versionControlSystem, selectedVersion);
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
-                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, serviceRegistry.get(NestedBuildFactory.class));
+                IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);
+                NestedBuildFactory nestedBuildFactory = serviceRegistry.get(NestedBuildFactory.class);
+                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, nestedBuildFactory);
 
                 String projectPath = ":"; // TODO: This needs to be extracted by configuring the build. Assume it's from the root for now
                 LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(DefaultProjectComponentIdentifier.newProjectId(includedBuild, projectPath));
