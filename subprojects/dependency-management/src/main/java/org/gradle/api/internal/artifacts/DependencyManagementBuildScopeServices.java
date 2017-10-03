@@ -105,7 +105,6 @@ import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -348,14 +347,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     VcsDependencyResolver createVcsDependencyResolver(ServiceRegistry serviceRegistry, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
-        // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
-        // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
-        ProjectInternal rootProject = projectRegistry.getRootProject();
-        File baseWorkingDir = null;
-        if (rootProject!=null) {
-            baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
-        }
-        return new VcsDependencyResolver(baseWorkingDir, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+        return new VcsDependencyResolver(projectRegistry, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {

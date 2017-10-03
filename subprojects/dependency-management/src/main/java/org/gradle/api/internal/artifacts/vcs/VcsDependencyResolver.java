@@ -20,6 +20,8 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -46,27 +48,30 @@ import java.io.File;
 import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectDependencyResolver projectDependencyResolver;
     private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsMappingsInternal vcsMappingsInternal;
     private final VcsMappingFactory vcsMappingFactory;
     private final VersionControlSystemFactory versionControlSystemFactory;
-    private final File baseWorkingDir;
 
-    public VcsDependencyResolver(File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    public VcsDependencyResolver(ProjectRegistry<ProjectInternal> projectRegistry, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+        this.projectRegistry = projectRegistry;
         this.projectDependencyResolver = projectDependencyResolver;
         this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
         this.vcsMappingsInternal = vcsMappingsInternal;
         this.vcsMappingFactory = vcsMappingFactory;
         this.versionControlSystemFactory = versionControlSystemFactory;
-        this.baseWorkingDir = baseWorkingDir;
     }
 
     @Override
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         VcsMappingInternal vcsMappingInternal = getVcsMapping(dependency);
+
+        File baseWorkingDir = getBaseWorkingDir();
+
         if (vcsMappingInternal != null && baseWorkingDir!=null) {
             vcsMappingsInternal.getVcsMappingRule().execute(vcsMappingInternal);
 
@@ -75,7 +80,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionControlSpec spec = vcsMappingInternal.getRepository();
                 VersionControlSystem versionControlSystem = versionControlSystemFactory.create(spec);
                 VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem);
-                File dependencyWorkingDir = populateWorkingDirectory(spec, versionControlSystem, selectedVersion);
+                File dependencyWorkingDir = populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion);
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
                 IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);
@@ -97,7 +102,18 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         projectDependencyResolver.resolve(dependency, result);
     }
 
-    private File populateWorkingDirectory(VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
+    private File getBaseWorkingDir() {
+        // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
+        // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
+        ProjectInternal rootProject = projectRegistry.getRootProject();
+        File baseWorkingDir = null;
+        if (rootProject!=null) {
+            baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
+        }
+        return baseWorkingDir;
+    }
+
+    private File populateWorkingDirectory(File baseWorkingDir, VersionControlSpec spec, VersionControlSystem versionControlSystem, VersionRef selectedVersion) {
         String repositoryId = HashUtil.createCompactMD5(versionControlSystem.getClass().getCanonicalName() + spec.getUniqueId());
         File dependencyWorkingDir = new File(baseWorkingDir, repositoryId + "/" + selectedVersion.getCanonicalId() + "/" + spec.getRepoName());
         versionControlSystem.populate(dependencyWorkingDir, selectedVersion, spec);
