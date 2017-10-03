@@ -83,7 +83,6 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.composite.internal.IncludedBuildRegistry;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -107,7 +106,6 @@ import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
-import javax.xml.ws.Service;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
