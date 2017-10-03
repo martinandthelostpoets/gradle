@@ -33,6 +33,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.OriginArtifactSelector;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.VersionControlSystem;
 import org.gradle.vcs.VersionRef;
@@ -46,7 +47,7 @@ import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers {
     private final ProjectDependencyResolver projectDependencyResolver;
-    private final NestedBuildFactory nestedBuildFactory;
+    private final ServiceRegistry serviceRegistry;
     private final LocalComponentRegistry localComponentRegistry;
     private final VcsMappingsInternal vcsMappingsInternal;
     private final VcsMappingFactory vcsMappingFactory;
@@ -54,10 +55,10 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final File baseWorkingDir;
     private final IncludedBuildRegistry includedBuildRegistry;
 
-    public VcsDependencyResolver(IncludedBuildRegistry includedBuildRegistry, File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    public VcsDependencyResolver(IncludedBuildRegistry includedBuildRegistry, File baseWorkingDir, ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, LocalComponentRegistry localComponentRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         this.includedBuildRegistry = includedBuildRegistry;
         this.projectDependencyResolver = projectDependencyResolver;
-        this.nestedBuildFactory = nestedBuildFactory;
+        this.serviceRegistry = serviceRegistry;
         this.localComponentRegistry = localComponentRegistry;
         this.vcsMappingsInternal = vcsMappingsInternal;
         this.vcsMappingFactory = vcsMappingFactory;
@@ -78,7 +79,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 VersionRef selectedVersion = selectVersionFromRepository(spec, versionControlSystem);
                 File dependencyWorkingDir = populateWorkingDirectory(spec, versionControlSystem, selectedVersion);
 
-                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, nestedBuildFactory);
+                // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
+                IncludedBuild includedBuild = includedBuildRegistry.addImplicitBuild(dependencyWorkingDir, serviceRegistry.get(NestedBuildFactory.class));
 
                 String projectPath = ":"; // TODO: This needs to be extracted by configuring the build. Assume it's from the root for now
                 LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(DefaultProjectComponentIdentifier.newProjectId(includedBuild, projectPath));

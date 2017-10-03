@@ -107,6 +107,7 @@ import org.gradle.vcs.internal.VcsMappingFactory;
 import org.gradle.vcs.internal.VcsMappingsInternal;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
+import javax.xml.ws.Service;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
@@ -349,7 +350,7 @@ class DependencyManagementBuildScopeServices {
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(ProjectDependencyResolver projectDependencyResolver, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
+    VcsDependencyResolver createVcsDependencyResolver(ProjectDependencyResolver projectDependencyResolver, ServiceRegistry serviceRegistry, IncludedBuildRegistry includedBuildRegistry, LocalComponentRegistry localComponentRegistry, ProjectRegistry<ProjectInternal> projectRegistry, VcsMappingsInternal vcsMappingsInternal, VcsMappingFactory vcsMappingFactory, VersionControlSystemFactory versionControlSystemFactory) {
         // TODO: We need to manage these working directories so they're shared across projects within a build (if possible)
         // and have some sort of global cache of cloned repositories.  This should be separate from the global cache.
         ProjectInternal rootProject = projectRegistry.getRootProject();
@@ -357,7 +358,7 @@ class DependencyManagementBuildScopeServices {
         if (rootProject!=null) {
             baseWorkingDir = new File(rootProject.getBuildDir(), "vcsWorkingDirs");
         }
-        return new VcsDependencyResolver(includedBuildRegistry, baseWorkingDir, projectDependencyResolver, nestedBuildFactory, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
+        return new VcsDependencyResolver(includedBuildRegistry, baseWorkingDir, projectDependencyResolver, serviceRegistry, localComponentRegistry, vcsMappingsInternal, vcsMappingFactory, versionControlSystemFactory);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver resolver) {
